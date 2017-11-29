@@ -1,0 +1,41 @@
+Producer(1): Job id 0 duration 9
+Producer(2): Job id 1 duration 8
+Consumer(1): Job id 0 executing sleep duration 9
+Consumer(2): Job id 1 executing sleep duration 8
+Producer(1): Job id 2 duration 10
+Consumer(3): Job id 2 executing sleep duration 10
+Producer(1): Job id 3 duration 4
+Producer(2): Job id 4 duration 3
+Producer(2): Job id 0 duration 5
+Producer(1): Job id 1 duration 4
+Consumer(2): Job id 1 completed
+Consumer(2): Job id 3 executing sleep duration 4
+Consumer(1): Job id 0 completed
+Consumer(1): Job id 4 executing sleep duration 3
+Producer(1): Job id 2 duration 10
+Producer(2): Job id 3 duration 7
+Consumer(1): Job id 4 completed
+Consumer(2): Job id 3 completed
+Consumer(2): Job id 1 executing sleep duration 4
+Consumer(3): Job id 2 completed
+Consumer(3): Job id 2 executing sleep duration 10
+Consumer(1): Job id 0 executing sleep duration 5
+Producer(2): Job id 4 duration 2
+Producer(1): Job id 0 duration 1
+Consumer(2): Job id 1 completed
+Consumer(2): Job id 3 executing sleep duration 7
+Consumer(1): Job id 0 completed
+Consumer(1): Job id 4 executing sleep duration 2
+Producer(1): No more jobs to generate.
+Consumer(1): Job id 4 completed
+Consumer(1): Job id 0 executing sleep duration 1
+Producer(2): Job id 1 duration 2
+Consumer(1): Job id 0 completed
+Consumer(1): Job id 1 executing sleep duration 2
+Consumer(3): Job id 2 completed
+Consumer(1): Job id 1 completed
+Consumer(2): Job id 3 completed
+Producer(2): No more jobs to generate.
+Consumer(3): No more jobs left.
+Consumer(1): No more jobs left.
+Consumer(2): No more jobs left.
