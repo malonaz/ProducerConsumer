@@ -8,7 +8,41 @@
  * sem_close - Destroy the semaphore array
  ******************************************************************/
 
-# include "helper.h"
+#include "helper.h"
+#include <sstream>
+
+#define NUM_CMDLINE_ARGS 5
+#define ERROR -1
+#define NO_ERROR 0
+
+int get_args(int argc, char** argv, int* arguments){
+  // error processing
+  if (argc != NUM_CMDLINE_ARGS){
+    cerr << "Invalid number of arguments.";
+    cerr << " You entered " << argc -1 << " arguments!\n";
+    return ERROR;
+  }
+  
+  argv++;  // move past self argument
+  
+  // attempts to read arguments
+  istringstream ss;
+  for (int i = 0; i < NUM_ARGS; i++){
+    ss.str(argv[i]);
+    if (!(ss >> arguments[i]) || arguments[i] < 0) {
+      cerr << "Invalid input: " << argv[i] << endl;
+      return ERROR;
+    }
+    ss.clear();
+  }
+  return NO_ERROR;
+}
+
+
+
+
+
+
 
 int check_arg (char *buffer)
 {

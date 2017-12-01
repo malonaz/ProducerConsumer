@@ -5,6 +5,12 @@
  ******************************************************************/
 
 
+#define NUM_CMDLINE_ARGS 5
+#define NUM_ARGS 4
+#define ERROR -1
+#define NO_ERROR 0
+
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
@@ -35,3 +41,12 @@ int sem_init (int, int, int);
 void sem_wait (int, short unsigned int);
 void sem_signal (int, short unsigned int);
 int sem_close (int);
+
+
+
+/**
+ * Mutator. Attempts to extract 4 integers from argv and copy them into arguments. 
+ * returns -1 if an error is encountered, 0 otherwise.
+ */
+int get_args(int argc, char** argv, int* arguments);
+
