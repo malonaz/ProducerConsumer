@@ -10,7 +10,7 @@ CircularQueue::CircularQueue(int size): front(-1), back(-1), size(size){
 void CircularQueue::add(Job* job_p){
   if ((front == 0 &&  back == size -1) || (back == front -1))
     // queue is full
-    return; 
+    return;
     
   else if (front == -1)
     // queue is empty 
@@ -24,8 +24,8 @@ void CircularQueue::add(Job* job_p){
   else
     back++;
 
+  job_p->id = back + 1;
   array[back] = job_p;
-  
 }
 
 

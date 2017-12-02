@@ -40,10 +40,6 @@ int get_args(int argc, char** argv, int* arguments){
 
 
 
-
-
-
-
 int check_arg (char *buffer)
 {
   int i, num = 0, temp = 0;
@@ -58,6 +54,7 @@ int check_arg (char *buffer)
   }
   return num;
 }
+
 
 int sem_create (key_t key, int num)
 {
@@ -84,6 +81,16 @@ void sem_wait (int id, short unsigned int num)
   semop (id, op, 1);
 }
 
+void sem_wait_with_time (int id, short unsigned int num, int seconds)
+{
+  // 20 seconds timespec
+  struct timespec ts = {seconds, 0};
+  struct sembuf op[] = {
+    {num, -1, SEM_UNDO}
+  };
+  semtimedop (id, op, 1, &ts);
+
+}
 void sem_signal (int id, short unsigned int num)
 {
   struct sembuf op[] = {

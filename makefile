@@ -19,3 +19,4 @@ tidy:
 
 clean:
 	rm -f main producer consumer *.o core
+
