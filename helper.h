@@ -1,3 +1,4 @@
+// -*- C++ -*-
 /******************************************************************
  * Header file for the helper functions. This file includes the
  * required header files, as well as the function signatures and
@@ -30,14 +31,31 @@ using namespace std;
 #define ERROR -1
 #define NO_ERROR 0
 
-// forward declaration
-class CircularQueue;
+
+struct Job{
+  int id;
+  int duration;
+};
+
+
+class circular_queue{
+private:
+  int size, front, back;
+  Job** array;
+  
+public:
+  circular_queue(int size);
+  ~circular_queue(){delete [] array;}
+  void add(Job* job_p);
+  Job* get();
+};
+
 
 struct thread_info {           /* Used as argument to thread_start() */
   pthread_t      thread_id;    /* ID returned by pthread_create() */
   int            thread_num;   /* Application-defined thread # */
   int            sem_set_id;   /* Semaphore set id */
-  CircularQueue* c_queue;      /* Circular Queue */
+  circular_queue* c_queue;      /* Circular Queue */
   int            num_jobs;     /* For Producer use only */
 };
 

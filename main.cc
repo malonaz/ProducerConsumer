@@ -4,7 +4,6 @@
  ******************************************************************/
 
 #include "helper.h"
-#include "circularQueue.h"
 #include <iostream>
 
 using namespace std;
@@ -51,7 +50,7 @@ int main (int argc, char **argv){
   int num_consumers = arguments[NUM_CONSUMERS_ARG_INDEX];
   
   // setup circular queue
-  CircularQueue c_queue(queue_size);
+  circular_queue c_queue(queue_size);
 
   // create semaphore set 
   int sem_set_id = sem_create(SEM_KEY, NUM_SEMS);
@@ -166,8 +165,6 @@ void *consumer (void *parameter){
     
     sem_wait(ct_info->sem_set_id, MUTEX_SEM_INDEX);
     // critical section
-
-     
 
     // get job
     Job* job_p = ct_info->c_queue->get();
