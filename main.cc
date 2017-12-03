@@ -6,6 +6,7 @@
 #include "helper.h"
 #include <iostream>
 
+
 using namespace std;
 
 // arguments
@@ -13,14 +14,14 @@ using namespace std;
 #define NUM_JOBS_ARG_INDEX 1
 #define NUM_PRODUCERS_ARG_INDEX 2
 #define NUM_CONSUMERS_ARG_INDEX 3
+#define SEM_WAIT_TIME 5
 
-// Semaphore indices
+// Semaphore info
 #define NUM_SEMS 3
 #define MUTEX_SEM_INDEX 0
 #define ITEMS_SEM_INDEX 1
 #define SLOTS_LEFT_SEM_INDEX 2
 
-#define WAIT_TIME 5
 
 // error handlers
 #define handle_error_en(en, msg) \
@@ -29,10 +30,9 @@ using namespace std;
 #define handle_error(msg) \
                do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
-
+//forward declarations
 void *producer (void *id);
 void *consumer (void *id);
-
 
 
 
@@ -59,8 +59,8 @@ int main (int argc, char **argv){
     return ERROR;
   }
   cout << "opened semaphore: " << sem_set_id << endl;
-
-  // initate semaphores
+  
+  // initiate semaphores
   if (sem_init(sem_set_id, MUTEX_SEM_INDEX, 1) == ERROR ||
       sem_init(sem_set_id, ITEMS_SEM_INDEX, 0) == ERROR ||
       sem_init(sem_set_id, SLOTS_LEFT_SEM_INDEX, queue_size) == ERROR){
@@ -108,7 +108,7 @@ int main (int argc, char **argv){
    }
 
   
-  // closing semaphore set
+  // close semaphore set
   if (sem_close(sem_set_id) == ERROR)
     cerr << "could not close semaphore!\n";
   
@@ -116,22 +116,23 @@ int main (int argc, char **argv){
 }
 
 void *producer(void *parameter){
-
+  // get thread param info
   thread_info* pt_info = (thread_info *) parameter;
-    
+
+  // loop to create jobs
   for (int i = 0; i < pt_info->num_jobs; i++){
     
     // wait 1 to 5 seconds before adding the next job
     int wait_time = rand()%5 + 1; 
     usleep(wait_time * 1000);
     
-    sem_wait_with_time(pt_info->sem_set_id, SLOTS_LEFT_SEM_INDEX, WAIT_TIME);
+    sem_wait_with_time(pt_info->sem_set_id, SLOTS_LEFT_SEM_INDEX, SEM_WAIT_TIME);
     if (errno == EAGAIN){
-      cerr << "wait time expired\n";
+      cerr << "wait time expired\n"; // thread safe
       pthread_exit(0);
     }
-      
     sem_wait(pt_info->sem_set_id, MUTEX_SEM_INDEX);
+    // CRITICAL SECTION
     
     // create new job. consumer is responsible for freeing memory
     Job* job_p = new Job;
@@ -141,15 +142,15 @@ void *producer(void *parameter){
     pt_info->c_queue->add(job_p);
     
     // output information
-    cout << "Producer(" << pt_info->thread_num << "): Job id ";
-    cout << job_p->id << " duration " << job_p->duration << endl;
+    print_producer(pt_info->thread_num, COMPLETED, job_p);
     
-    // end critical section
+    // CRITICAL SECTION END
     sem_signal(pt_info->sem_set_id, MUTEX_SEM_INDEX);
     sem_signal(pt_info->sem_set_id, ITEMS_SEM_INDEX);
   }
   
-  cout << "Producer(" << pt_info->thread_num << "): No more jobs to generate.\n";
+  // output informatin
+  print_producer(pt_info->thread_num, DONE, NULL);
   
   pthread_exit(0);
 }
@@ -158,7 +159,7 @@ void *consumer (void *parameter){
   thread_info* ct_info = (thread_info *) parameter;
 
   while (true){
-    sem_wait_with_time(ct_info->sem_set_id, ITEMS_SEM_INDEX, WAIT_TIME);
+    sem_wait_with_time(ct_info->sem_set_id, ITEMS_SEM_INDEX, SEM_WAIT_TIME);
     // check time did not expire
     if (errno == EAGAIN)
       break;
@@ -169,15 +170,15 @@ void *consumer (void *parameter){
     // get job
     Job* job_p = ct_info->c_queue->get();
     
-    cout << "Consumer(" << ct_info->thread_num << "): Job id " << job_p->id;
-    cout << " executing sleep duration " << job_p->duration << endl;
+    // print execution information
+    print_consumer(ct_info->thread_num, EXECUTING, job_p);
     
     // sleep for duration
     usleep(job_p->duration * 1000);
 
-    cout << "Consumer(" << ct_info->thread_num << "): Job id " << job_p->id;
-    cout << " completed\n";
-    
+    // print completion information
+    print_consumer(ct_info->thread_num, COMPLETED, job_p);
+
     // free memory
     delete job_p;
     
@@ -185,7 +186,9 @@ void *consumer (void *parameter){
     sem_signal(ct_info->sem_set_id, MUTEX_SEM_INDEX);
     sem_signal(ct_info->sem_set_id, SLOTS_LEFT_SEM_INDEX); 
   }
-  cout << "Consumer(" << ct_info->thread_num << "): No more jobs left.\n";
+
+  // print information
+  print_consumer(ct_info->thread_num, DONE, NULL);
   pthread_exit(0);
 
 }

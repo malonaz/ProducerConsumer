@@ -32,6 +32,11 @@ using namespace std;
 #define NO_ERROR 0
 
 
+// producer and consumer status
+#define DONE 0
+#define EXECUTING 1
+#define COMPLETED 2
+
 struct Job{
   int id;
   int duration;
@@ -82,3 +87,9 @@ int sem_close (int);
  */
 int get_args(int argc, char** argv, int* arguments);
 
+
+/**
+ * Prints output of a producer in a thread safe way!
+ */
+void print_producer(int thread_num, int status, Job* job_p);
+void print_consumer(int thread_num, int status, Job* job_p);

@@ -15,6 +15,7 @@
 #define ERROR -1
 #define NO_ERROR 0
 
+
 int get_args(int argc, char** argv, int* arguments){
   // error processing
   if (argc != NUM_CMDLINE_ARGS){
@@ -37,8 +38,6 @@ int get_args(int argc, char** argv, int* arguments){
   }
   return NO_ERROR;
 }
-
-
 
 circular_queue::circular_queue(int size): size(size), front(-1), back(-1){
     array = new Job*[size];
@@ -97,7 +96,30 @@ Job* circular_queue::get(){
 }
 
 
+void print_producer(int thread_num, int status, Job* job_p){
+  stringstream stream;
+  stream << "Producer(" << thread_num << "): ";
+  if (status == DONE)
+    stream << "No more jobs to generate.";
+  else if (status == COMPLETED)
+    stream << "job id " << job_p->id << " duration " << job_p->duration;
+  stream << endl;
+  cout << stream.str();
+}
 
+void print_consumer(int thread_num, int status, Job* job_p){
+  stringstream stream;
+  stream << "Consumer(" << thread_num << "): ";
+  if (status == DONE)
+    stream << "No more jobs left.";
+  else if (status == EXECUTING)
+    stream << "job id " << job_p->id << " executing sleep duration " << job_p->duration;
+  else if (status == COMPLETED)
+    stream << "job id " << job_p->id << " completed";
+
+  stream << endl;
+  cout << stream.str();
+}
 
 int check_arg (char *buffer)
 {
