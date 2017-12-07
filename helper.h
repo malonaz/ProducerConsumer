@@ -26,6 +26,8 @@
 using namespace std;
 
 #define SEM_KEY 0x68 // Change this number as needed
+
+// parser definitions
 #define NUM_CMDLINE_ARGS 5
 #define NUM_ARGS 4
 #define ERROR -1
@@ -37,22 +39,52 @@ using namespace std;
 #define EXECUTING 1
 #define COMPLETED 2
 
-struct Job{
+/**
+ * Job. This structure represents a job as an id and a duration.
+ */
+struct job{
   int id;
   int duration;
 };
 
 
+/**
+ * Circular Queue. This class represents a circular queue as a size
+ * an array of pointers to jobs, and indices front and back that 
+ * indicate what the indices of the job at the front of the queue
+ * and the job at the back of the queue are.
+ */
 class circular_queue{
 private:
   int size, front, back;
-  Job** array;
+  job** array;
   
 public:
+  /**
+   * Constructor. creates job pointers array of given size and initializes
+   * all pointers to 0. Necessary for destructor delete calls!
+   */
   circular_queue(int size);
-  ~circular_queue(){delete [] array;}
-  void add(Job* job_p);
-  Job* get();
+
+  /**
+   * Destructor. Deletes each job (safe to call on null pointers)
+   * needed in case consumers wait longer than 20 seconds and don't 
+   * "consume" jobs, leaving some jobs on heap. Then deletes array.
+   */
+  ~circular_queue();
+
+  /**
+   * Mutator. Adds a job pointer to the back of the queue.
+   */
+  void add(job* job_p);
+
+  /**
+   * Mutator. Returns the pointer to the job at the front of the queue
+   * after nulling its pointer in the queue. Caller is responsible for 
+   * deletion of the job off the heap.
+   */
+  job* get();
+  
 };
 
 
@@ -91,8 +123,8 @@ int get_args(int argc, char** argv, int* arguments);
 /**
  * Prints output of a producer in a thread safe way!
  */
-void print_producer(int thread_num, int status, Job* job_p);
-void print_consumer(int thread_num, int status, Job* job_p);
+void print_producer(int thread_num, int status, job* job_p);
+void print_consumer(int thread_num, int status, job* job_p);
 
 void handle_sem_error(const char* msg, int sem_set_id);
 void handle_thread_error(int en, const char* msg, int sem_set_id);

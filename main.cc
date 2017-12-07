@@ -30,9 +30,10 @@ void *consumer (void *id);
 int main (int argc, char **argv){
   int arguments[NUM_ARGS], error;
 
-  // parse arguments or exit if error is encountered
-  if (get_args(argc, argv, arguments) == ERROR)
+  // try to parse arguments or handle error 
+  if (get_args(argc, argv, arguments) == ERROR){
     return ERROR;
+  }
   
   // initialize variables
   int queue_size = arguments[SIZE_ARG_INDEX];
@@ -43,14 +44,13 @@ int main (int argc, char **argv){
   // setup circular queue
   circular_queue c_queue(queue_size);
 
-  // create semaphore set 
+  // try to create semaphore set or handle error
   int sem_set_id = sem_create(SEM_KEY, NUM_SEMS);
   if (sem_set_id == ERROR)
     handle_sem_error("Could not get semaphore set!\n", sem_set_id);
-  
   cout << "opened semaphore: " << sem_set_id << endl;
   
-  // initiate semaphores
+  // try to initiate semaphores or handle error
   if (sem_init(sem_set_id, MUTEX_SEM_INDEX, 1) == ERROR ||
       sem_init(sem_set_id, ITEMS_SEM_INDEX, 0) == ERROR ||
       sem_init(sem_set_id, SLOTS_LEFT_SEM_INDEX, queue_size) == ERROR)
@@ -59,7 +59,7 @@ int main (int argc, char **argv){
   // initiate producer and consumer thread info
   thread_info pt_info[num_producers], ct_info[num_consumers];
   
-  // create one thread for each producer
+  // try to create a thread for each producer or handle error
   for (int tnum = 0; tnum < num_producers; tnum++){
     pt_info[tnum].thread_num = tnum + 1;
     pt_info[tnum].sem_set_id = sem_set_id;
@@ -70,7 +70,7 @@ int main (int argc, char **argv){
       handle_thread_error(error, "pthread_create", sem_set_id);
   }
 
-  // create one thread for each consumer
+  // try to create a thread for each consumer or handle error
    for (int tnum = 0; tnum < num_consumers; tnum++){
     ct_info[tnum].thread_num = tnum + 1;
     ct_info[tnum].sem_set_id = sem_set_id;
@@ -80,7 +80,7 @@ int main (int argc, char **argv){
       handle_thread_error(error, "pthread_create", sem_set_id);
   }
   
-  // join threads
+  // try to join threads or handle error
    for (int tnum = 0; tnum < num_producers; tnum++){
      error = pthread_join(pt_info[tnum].thread_id, NULL);
      if (error != NO_ERROR)
@@ -93,7 +93,7 @@ int main (int argc, char **argv){
    }
 
   
-  // close semaphore set
+  // close semaphore set or handle error
   if (sem_close(sem_set_id) == ERROR)
     cerr << "could not close semaphore!\n";
   
@@ -106,35 +106,37 @@ void *producer(void *parameter){
 
   // loop to create jobs
   for (int i = 0; i < pt_info->num_jobs; i++){
-    
-    // wait 1 to 5 seconds before adding the next job
-    int wait_time = rand()%5 + 1; 
-    usleep(wait_time * 1000);
-    
+
+    // create new job. Consumer or Circular queue are responsible for freeing memory
+    job* job_p = new job;
+    // duration between 1 and 10 seconds
+    job_p->duration = rand()%10  + 1;
+
     sem_wait_with_time(pt_info->sem_set_id, SLOTS_LEFT_SEM_INDEX, SEM_WAIT_TIME);
     if (errno == EAGAIN){
+      delete job_p; // delete job to prevent memory leak  
       cerr << "wait time expired\n"; // thread safe
       pthread_exit(0);
     }
     sem_wait(pt_info->sem_set_id, MUTEX_SEM_INDEX);
-    // CRITICAL SECTION
+    // -------------------------CRITICAL SECTION ---------------------------------
     
-    // create new job. consumer is responsible for freeing memory
-    Job* job_p = new Job;
-    job_p->duration = rand()%10  + 1;
-    
-    // add to circular queue
+    // add job to circular queue
     pt_info->c_queue->add(job_p);
-    
-    // output information
-    print_producer(pt_info->thread_num, COMPLETED, job_p);
-    
-    // CRITICAL SECTION END
+
+    //----------------------- CRITICAL SECTION END ------------------------
     sem_signal(pt_info->sem_set_id, MUTEX_SEM_INDEX);
     sem_signal(pt_info->sem_set_id, ITEMS_SEM_INDEX);
+
+    // output information. thread-safe
+    print_producer(pt_info->thread_num, COMPLETED, job_p);
+    
+    // wait 1 to 5 seconds before adding the next job
+    int wait_time = rand()%5 + 1; 
+    usleep(wait_time * 1000000);
   }
   
-  // output informatin
+  // output information. thread-safe
   print_producer(pt_info->thread_num, DONE, NULL);
   
   pthread_exit(0);
@@ -150,29 +152,31 @@ void *consumer (void *parameter){
       break;
     
     sem_wait(ct_info->sem_set_id, MUTEX_SEM_INDEX);
-    // critical section
+    // CRITICAL SECTION
 
-    // get job
-    Job* job_p = ct_info->c_queue->get();
+    // get job. queue's pointer to this job is nulled after get operation 
+    // so getting the job pointer is the only critical code.
+    job* job_p = ct_info->c_queue->get();
+
+    // CRITICAL SECTION END
+    sem_signal(ct_info->sem_set_id, MUTEX_SEM_INDEX);
+    sem_signal(ct_info->sem_set_id, SLOTS_LEFT_SEM_INDEX); 
     
-    // print execution information
+    // print execution information. thread-safe
     print_consumer(ct_info->thread_num, EXECUTING, job_p);
     
     // sleep for duration
     usleep(job_p->duration * 1000);
 
-    // print completion information
+    // print completion information. thread-safe
     print_consumer(ct_info->thread_num, COMPLETED, job_p);
 
     // free memory
     delete job_p;
     
-    // end critical section
-    sem_signal(ct_info->sem_set_id, MUTEX_SEM_INDEX);
-    sem_signal(ct_info->sem_set_id, SLOTS_LEFT_SEM_INDEX); 
   }
 
-  // print information
+  // print information. thread-safe
   print_consumer(ct_info->thread_num, DONE, NULL);
   pthread_exit(0);
 

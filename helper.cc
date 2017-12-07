@@ -61,11 +61,22 @@ void handle_sem_error(const char* msg, int sem_set_id){
 
 
 circular_queue::circular_queue(int size): size(size), front(-1), back(-1){
-    array = new Job*[size];
+    array = new job*[size];
+    for (int i = 0; i < size; i++)
+      array[i] = 0; // null pointers
   }
 
+circular_queue::~circular_queue(){
+  for (int i = 0; i < size; i++)
+    // delete job pointer. safe to call on null pointers
+    delete array[i];
+  
+  // deletes the array.
+  delete [] array;
+}
 
-void circular_queue::add(Job* job_p){
+
+void circular_queue::add(job* job_p){
   if ((front == 0 &&  back == size -1) || (back == front -1))
     // queue is full
     return;
@@ -87,13 +98,13 @@ void circular_queue::add(Job* job_p){
 }
 
 
-Job* circular_queue::get(){
+job* circular_queue::get(){
   if (front == -1 && back == -1)
     // queue is empty so return null pointer.
     return 0; 
 
   // save the job pointer
-  Job* job_p = array[front];
+  job* job_p = array[front];
 
 
   // remove it from queue by nulling 
@@ -117,7 +128,7 @@ Job* circular_queue::get(){
 }
 
 
-void print_producer(int thread_num, int status, Job* job_p){
+void print_producer(int thread_num, int status, job* job_p){
   stringstream stream;
   stream << "Producer(" << thread_num << "): ";
   if (status == DONE)
@@ -128,7 +139,7 @@ void print_producer(int thread_num, int status, Job* job_p){
   cout << stream.str();
 }
 
-void print_consumer(int thread_num, int status, Job* job_p){
+void print_consumer(int thread_num, int status, job* job_p){
   stringstream stream;
   stream << "Consumer(" << thread_num << "): ";
   if (status == DONE)
