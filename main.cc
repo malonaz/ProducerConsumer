@@ -14,13 +14,14 @@ using namespace std;
 #define NUM_JOBS_ARG_INDEX 1
 #define NUM_PRODUCERS_ARG_INDEX 2
 #define NUM_CONSUMERS_ARG_INDEX 3
-#define SEM_WAIT_TIME 5
+
 
 // Semaphore info
 #define NUM_SEMS 3
 #define MUTEX_SEM_INDEX 0
 #define ITEMS_SEM_INDEX 1
 #define SLOTS_LEFT_SEM_INDEX 2
+#define SEM_WAIT_TIME 20
 
 
 //forward declarations
@@ -131,9 +132,10 @@ void *producer(void *parameter){
     // output information. thread-safe
     print_producer(pt_info->thread_num, COMPLETED, job_p);
     
-    // wait 1 to 5 seconds before adding the next job
-    int wait_time = rand()%5 + 1; 
-    usleep(wait_time * 1000000);
+    // wait 1 to 5 seconds before adding the next job. 
+    int wait_time = rand()%5 + 1;
+    // multiply by 1000000 because usleep uses microseconds
+    usleep(wait_time * MICROSEC_PER_SEC);
   }
   
   // output information. thread-safe
@@ -165,8 +167,8 @@ void *consumer (void *parameter){
     // print execution information. thread-safe
     print_consumer(ct_info->thread_num, EXECUTING, job_p);
     
-    // sleep for duration
-    usleep(job_p->duration * 1000);
+    // sleep for duration. * 1000 0000 because usleep uses microseconds
+    usleep(job_p->duration * MICROSEC_PER_SEC);
 
     // print completion information. thread-safe
     print_consumer(ct_info->thread_num, COMPLETED, job_p);

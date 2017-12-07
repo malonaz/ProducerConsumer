@@ -26,6 +26,7 @@
 using namespace std;
 
 #define SEM_KEY 0x68 // Change this number as needed
+#define MICROSEC_PER_SEC 1000000
 
 // parser definitions
 #define NUM_CMDLINE_ARGS 5

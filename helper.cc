@@ -194,7 +194,6 @@ void sem_wait (int id, short unsigned int num)
 
 void sem_wait_with_time (int id, short unsigned int num, int seconds)
 {
-  // 20 seconds timespec
   struct timespec ts = {seconds, 0};
   struct sembuf op[] = {
     {num, -1, SEM_UNDO}
