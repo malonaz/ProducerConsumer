@@ -40,8 +40,6 @@ int get_args(int argc, char** argv, int* arguments){
 }
 
 
-
-// error handlers
 void handle_thread_error(int en, const char* msg, int sem_set_id){
   errno = en;
   perror(msg);

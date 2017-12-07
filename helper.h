@@ -115,16 +115,30 @@ int sem_close (int);
 
 /**
  * Mutator. Attempts to extract 4 integers from argv and copy them into arguments. 
- * returns -1 if an error is encountered, 0 otherwise.
+ * returns ERROR if an error is encountered, 0 otherwise.
  */
 int get_args(int argc, char** argv, int* arguments);
 
 
 /**
- * Prints output of a producer in a thread safe way!
+ * Prints state of producer to std output stream in atomic manner.
  */
 void print_producer(int thread_num, int status, job* job_p);
+
+/**
+ * Prints state of consumer to std output stream in atomic manner.
+ */
 void print_consumer(int thread_num, int status, job* job_p);
 
+
+/**
+ * prints error information to std error stream in atomic manner.
+ * closes semaphore of given ID.
+ */
 void handle_sem_error(const char* msg, int sem_set_id);
+
+/**
+ * prints error information to std error stream using perror method.
+ * closes semaphore of given ID.
+ */
 void handle_thread_error(int en, const char* msg, int sem_set_id);
