@@ -49,7 +49,6 @@ int main (int argc, char **argv){
   int sem_set_id = sem_create(SEM_KEY, NUM_SEMS);
   if (sem_set_id == ERROR)
     handle_sem_error("Could not get semaphore set!\n", sem_set_id);
-  cout << "opened semaphore: " << sem_set_id << endl;
   
   // try to initiate semaphores or handle error
   if (sem_init(sem_set_id, MUTEX_SEM_INDEX, 1) == ERROR ||
@@ -125,7 +124,7 @@ void *producer(void *parameter){
     // add job to circular queue
     pt_info->c_queue->add(job_p);
 
-    //----------------------- CRITICAL SECTION END ------------------------
+    //----------------------- CRITICAL SECTION END -------------------------------
     sem_signal(pt_info->sem_set_id, MUTEX_SEM_INDEX);
     sem_signal(pt_info->sem_set_id, ITEMS_SEM_INDEX);
 
@@ -152,15 +151,14 @@ void *consumer (void *parameter){
     // check time did not expire
     if (errno == EAGAIN)
       break;
-    
     sem_wait(ct_info->sem_set_id, MUTEX_SEM_INDEX);
-    // CRITICAL SECTION
+    // ------------------- CRITICAL SECTION ------------------------------------
 
     // get job. queue's pointer to this job is nulled after get operation 
     // so getting the job pointer is the only critical code.
     job* job_p = ct_info->c_queue->get();
 
-    // CRITICAL SECTION END
+    // ------------------- CRITICAL SECTION END --------------------------------
     sem_signal(ct_info->sem_set_id, MUTEX_SEM_INDEX);
     sem_signal(ct_info->sem_set_id, SLOTS_LEFT_SEM_INDEX); 
     

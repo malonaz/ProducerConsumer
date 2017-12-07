@@ -75,12 +75,14 @@ public:
   ~circular_queue();
 
   /**
-   * Mutator. Adds a job pointer to the back of the queue.
+   * Mutator. Requires semaphore to control access. Cannot be called on a 
+   * full queue. Adds a job pointer to the back of the queue. 
    */
   void add(job* job_p);
 
   /**
-   * Mutator. Returns the pointer to the job at the front of the queue
+   * Mutator. Requires semaphore to control access. Cannot be called on an
+   * empty queue. Returns the pointer to the job at the front of the queue
    * after nulling its pointer in the queue. Caller is responsible for 
    * deletion of the job off the heap.
    */

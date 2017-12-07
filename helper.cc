@@ -75,15 +75,13 @@ circular_queue::~circular_queue(){
 
 
 void circular_queue::add(job* job_p){
-  if ((front == 0 &&  back == size -1) || (back == front -1))
-    // queue is full
-    return;
+  // no logic checks for full queue as semaphores prevent threads
+  // from adding job to a full queue
     
-  else if (front == -1)
+  if (front == -1)
     // queue is empty 
     front = back = 0;
 
-  // we know front != 0. so queue cannot be empty.
   // since this is a circular queue, we go to first index.
   else if (back == size -1) 
     back = 0;
@@ -97,13 +95,11 @@ void circular_queue::add(job* job_p){
 
 
 job* circular_queue::get(){
-  if (front == -1 && back == -1)
-    // queue is empty so return null pointer.
-    return 0; 
+  // no logic check for empty queue as semaphores prevent threads
+  // from getting job from an empty queue
 
   // save the job pointer
   job* job_p = array[front];
-
 
   // remove it from queue by nulling 
   array[front] = 0; 
