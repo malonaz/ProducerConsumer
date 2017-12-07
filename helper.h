@@ -93,3 +93,6 @@ int get_args(int argc, char** argv, int* arguments);
  */
 void print_producer(int thread_num, int status, Job* job_p);
 void print_consumer(int thread_num, int status, Job* job_p);
+
+void handle_sem_error(const char* msg, int sem_set_id);
+void handle_thread_error(int en, const char* msg, int sem_set_id);

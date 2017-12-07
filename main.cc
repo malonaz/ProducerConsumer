@@ -23,21 +23,12 @@ using namespace std;
 #define SLOTS_LEFT_SEM_INDEX 2
 
 
-// error handlers
-#define handle_error_en(en, msg) \
-               do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
-
-#define handle_error(msg) \
-               do { perror(msg); exit(EXIT_FAILURE); } while (0)
-
 //forward declarations
 void *producer (void *id);
 void *consumer (void *id);
 
-
-
 int main (int argc, char **argv){
-  int arguments[NUM_ARGS], s;
+  int arguments[NUM_ARGS], error;
 
   // parse arguments or exit if error is encountered
   if (get_args(argc, argv, arguments) == ERROR)
@@ -54,22 +45,16 @@ int main (int argc, char **argv){
 
   // create semaphore set 
   int sem_set_id = sem_create(SEM_KEY, NUM_SEMS);
-  if (sem_set_id == ERROR){
-    cerr << "could not get semaphore set!\n";
-    return ERROR;
-  }
+  if (sem_set_id == ERROR)
+    handle_sem_error("Could not get semaphore set!\n", sem_set_id);
+  
   cout << "opened semaphore: " << sem_set_id << endl;
   
   // initiate semaphores
   if (sem_init(sem_set_id, MUTEX_SEM_INDEX, 1) == ERROR ||
       sem_init(sem_set_id, ITEMS_SEM_INDEX, 0) == ERROR ||
-      sem_init(sem_set_id, SLOTS_LEFT_SEM_INDEX, queue_size) == ERROR){
-    cerr << "could not initiate semaphores!\n";
-    
-    // close semaphore set
-    sem_close(sem_set_id);
-    return ERROR;
-  }
+      sem_init(sem_set_id, SLOTS_LEFT_SEM_INDEX, queue_size) == ERROR)
+    handle_sem_error("Could not initiate semaphores!\n", sem_set_id);
 
   // initiate producer and consumer thread info
   thread_info pt_info[num_producers], ct_info[num_consumers];
@@ -80,9 +65,9 @@ int main (int argc, char **argv){
     pt_info[tnum].sem_set_id = sem_set_id;
     pt_info[tnum].c_queue = &c_queue;
     pt_info[tnum].num_jobs = num_jobs;
-    s = pthread_create(&pt_info[tnum].thread_id, NULL, producer, (void*)&pt_info[tnum]);
-    if (s != NO_ERROR)
-      handle_error_en(s, "pthread_create");
+    error = pthread_create(&pt_info[tnum].thread_id, NULL, producer, (void*)&pt_info[tnum]);
+    if (error != NO_ERROR)
+      handle_thread_error(error, "pthread_create", sem_set_id);
   }
 
   // create one thread for each consumer
@@ -90,21 +75,21 @@ int main (int argc, char **argv){
     ct_info[tnum].thread_num = tnum + 1;
     ct_info[tnum].sem_set_id = sem_set_id;
     ct_info[tnum].c_queue = &c_queue;
-    s = pthread_create(&ct_info[tnum].thread_id, NULL, consumer, (void*)&ct_info[tnum]);
-    if (s != NO_ERROR)
-      handle_error_en(s, "pthread_create");
+    error = pthread_create(&ct_info[tnum].thread_id, NULL, consumer, (void*)&ct_info[tnum]);
+    if (error != NO_ERROR)
+      handle_thread_error(error, "pthread_create", sem_set_id);
   }
   
   // join threads
    for (int tnum = 0; tnum < num_producers; tnum++){
-     s = pthread_join(pt_info[tnum].thread_id, NULL);
-     if (s != NO_ERROR)
-       handle_error_en(s, "pthread_join");
+     error = pthread_join(pt_info[tnum].thread_id, NULL);
+     if (error != NO_ERROR)
+       handle_thread_error(error, "pthread_join", sem_set_id);
    }
    for (int tnum = 0; tnum < num_consumers; tnum++){
-     s = pthread_join(ct_info[tnum].thread_id, NULL);
-     if (s != NO_ERROR)
-       handle_error_en(s, "pthread_join");
+     error = pthread_join(ct_info[tnum].thread_id, NULL);
+     if (error != NO_ERROR)
+       handle_thread_error(error, "pthread_join", sem_set_id);
    }
 
   

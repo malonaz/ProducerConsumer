@@ -39,6 +39,27 @@ int get_args(int argc, char** argv, int* arguments){
   return NO_ERROR;
 }
 
+
+
+// error handlers
+void handle_thread_error(int en, const char* msg, int sem_set_id){
+  errno = en;
+  perror(msg);
+
+  // close semaphore set
+  sem_close(sem_set_id);
+  exit(EXIT_FAILURE);
+}
+
+void handle_sem_error(const char* msg, int sem_set_id){
+  cerr << msg;
+  
+  // close semaphore set
+  sem_close(sem_set_id);
+  exit(EXIT_FAILURE);
+}
+
+
 circular_queue::circular_queue(int size): size(size), front(-1), back(-1){
     array = new Job*[size];
   }
