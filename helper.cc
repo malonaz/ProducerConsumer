@@ -40,8 +40,8 @@ int get_args(int argc, char** argv, int* arguments){
 }
 
 
-void handle_thread_error(int en, const char* msg, int sem_set_id){
-  errno = en;
+void handle_thread_error(int error, const char* msg, int sem_set_id){
+  errno = error;
   perror(msg);
 
   // close semaphore set

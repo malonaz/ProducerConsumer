@@ -144,4 +144,4 @@ void handle_sem_error(const char* msg, int sem_set_id);
  * prints error information to std error stream using perror method.
  * closes semaphore of given ID.
  */
-void handle_thread_error(int en, const char* msg, int sem_set_id);
+void handle_thread_error(int error, const char* msg, int sem_set_id);
